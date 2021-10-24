@@ -7,6 +7,8 @@
 namespace llvm {
 class SQLTableEmitter {
   raw_ostream &OS;
+  // Map from a class (record) to its primary key member.
+  DenseMap<const Record *, StringRef> PrimaryKeys;
 
 public:
   SQLTableEmitter(raw_ostream &OS) : OS(OS) {}

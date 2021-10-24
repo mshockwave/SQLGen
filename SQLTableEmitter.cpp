@@ -1,3 +1,5 @@
+#include "llvm/ADT/StringExtras.h"
+
 #include "Error.h"
 #include "SQLTableEmitter.h"
 
@@ -30,10 +32,14 @@ raw_ostream &operator<<(raw_ostream &OS, const SQLType &Ty) {
 Error SQLTableEmitter::run(ArrayRef<const Record *> Classes) {
   // {SQL data type, member name}
   SmallVector<std::pair<SQLType, StringRef>, 4> TableMembers;
+  // {foreign key member, referee class, referee primary key}
+  SmallVector<std::tuple<StringRef, const Record *, StringRef>, 4>
+    ForeignKeys;
 
   for (const auto *Class : Classes) {
-    StringRef PrimaryKey;
+    StringRef CurPrimaryKey;
     TableMembers.clear();
+    ForeignKeys.clear();
     for (const auto &RV : Class->getValues()) {
       // We only care about member variables.
       if (RV.isTemplateArg())
@@ -46,15 +52,29 @@ Error SQLTableEmitter::run(ArrayRef<const Record *> Classes) {
 
       if (auto *VI = dyn_cast<VarInit>(RV.getValue())) {
         if (VI->getName() == "PrimaryKey")
-          PrimaryKey = Name;
+          CurPrimaryKey = Name;
       }
 
       SQLType SQLTy = SQLType::Unknown;
-      switch (RV.getType()->getRecTyKind()) {
+      const auto *RVT = RV.getType();
+      switch (RVT->getRecTyKind()) {
       case RecTy::IntRecTyKind:
       case RecTy::RecordRecTyKind:
-        // TODO: Full support for RecordRecTy
         SQLTy = SQLType::Integer;
+        if (const auto *RRT = dyn_cast<RecordRecTy>(RVT)) {
+          // Implement members with RecordRecTy with foreign keys.
+          bool FoundFK = false;
+          for (const auto *C : RRT->getClasses())
+            if (PrimaryKeys.count(C)) {
+              ForeignKeys.push_back({Name, C, PrimaryKeys[C]});
+              FoundFK = true;
+              break;
+            }
+
+          if (!FoundFK)
+            return createTGStringError(RV.getLoc(), "Cannot locate primary key "
+                                       "of the referred table");
+        }
         break;
       case RecTy::StringRecTyKind:
         SQLTy = SQLType::VarChar;
@@ -66,12 +86,21 @@ Error SQLTableEmitter::run(ArrayRef<const Record *> Classes) {
       TableMembers.push_back({SQLTy, Name});
     }
 
+    // Write down the primary key of this table.
+    if (CurPrimaryKey.size())
+      PrimaryKeys.insert({Class, CurPrimaryKey});
+
+    ListSeparator LS(",\n");
     OS << "CREATE TABLE " << Class->getName() << " (\n";
     for (const auto &Member : TableMembers)
-      OS.indent(4) << Member.second << " " << Member.first <<",\n";
-    if (PrimaryKey.size())
-      OS.indent(4) << "PRIMARY KEY (" << PrimaryKey << ")\n";
-    OS << ");\n";
+      (OS << LS).indent(4) << Member.second << " " << Member.first;
+    if (CurPrimaryKey.size())
+      (OS << LS).indent(4) << "PRIMARY KEY (" << CurPrimaryKey << ")";
+    for (const auto &FK : ForeignKeys)
+      (OS << LS).indent(4) << "FOREIGN KEY (" << std::get<0>(FK) << ") "
+                           << "REFERENCES " << std::get<1>(FK)->getName()
+                           << "(" << std::get<2>(FK) << ")";
+    OS << "\n);\n";
   }
 
   return Error::success();
