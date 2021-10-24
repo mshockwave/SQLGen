@@ -30,7 +30,10 @@ if(NOT ${LLVM_ENABLE_RTTI})
 endif()
 
 set(_SOURCE_FILES
-    sqlgen.cpp)
+    Error.cpp
+    sqlgen.cpp
+    SQLTableEmitter.cpp
+    SQLEmitter.cpp)
 
 set(LLVM_LINK_COMPONENTS
   Support
