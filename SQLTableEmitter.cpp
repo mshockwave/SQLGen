@@ -100,7 +100,7 @@ Error SQLTableEmitter::run(ArrayRef<const Record *> Classes) {
       (OS << LS).indent(4) << "FOREIGN KEY (" << std::get<0>(FK) << ") "
                            << "REFERENCES " << std::get<1>(FK)->getName()
                            << "(" << std::get<2>(FK) << ")";
-    OS << "\n);\n";
+    OS << "\n);\n\n";
   }
 
   return Error::success();

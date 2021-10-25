@@ -1,6 +1,7 @@
 #ifndef SQLGEN_SQLTABLEEMITTER_H
 #define SQLGEN_SQLTABLEEMITTER_H
 #include "llvm/ADT/ArrayRef.h"
+#include "llvm/ADT/Optional.h"
 #include "llvm/Support/Error.h"
 #include "llvm/TableGen/Record.h"
 
@@ -14,6 +15,13 @@ public:
   SQLTableEmitter(raw_ostream &OS) : OS(OS) {}
 
   Error run(ArrayRef<const Record *> Classes);
+
+  Optional<StringRef> getPrimaryKey(const Record *ClassRecord) const {
+    auto I = PrimaryKeys.find(ClassRecord);
+    if (I != PrimaryKeys.end())
+      return I->second;
+    return {};
+  }
 };
 } // end namespace llvm
 #endif

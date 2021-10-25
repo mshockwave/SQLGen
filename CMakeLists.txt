@@ -32,8 +32,10 @@ endif()
 set(_SOURCE_FILES
     Error.cpp
     sqlgen.cpp
+    SQLEmitter.cpp
+    SQLInsertEmitter.cpp
     SQLTableEmitter.cpp
-    SQLEmitter.cpp)
+    )
 
 set(LLVM_LINK_COMPONENTS
   Support
