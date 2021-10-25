@@ -47,14 +47,18 @@ Error SQLInsertEmitter::insertRowImpl(const Record * RowRecord) {
         Values.push_back({Name, StrVal->getAsString()});
       else if (const auto *DefVal = dyn_cast<DefInit>(Val)) {
         // Another row Record
-        // TODO: Make sure the referred Record is a SQL row.
         const auto *DefRecord = DefVal->getDef();
+        if (!DefRecord->isSubClassOf("Table"))
+          return createTGStringError(DefRecord->getLoc()[0],
+                                     "Reference to another non SQL row Record "
+                                     "is not supported yet");
         // Insert the referred row if needed.
         if (auto E = insertRowImpl(DefRecord))
           return std::move(E);
         auto RowI = InsertedRows.find(DefRecord);
         if (RowI == InsertedRows.end())
-          return createTGStringError(RV.getLoc(), "Cannot find record \"" +
+          return createTGStringError(DefRecord->getLoc()[0],
+                                     "Cannot find record \"" +
                                      DefRecord->getName() + "\"");
         Values.push_back({Name, std::to_string(RowI->second)});
       } else {
