@@ -1,12 +1,11 @@
+#ifndef SQLGEN_ERROR_H
+#define SQLGEN_ERROR_H
 #include "llvm/ADT/Twine.h"
 #include "llvm/Support/Error.h"
 #include "llvm/Support/SMLoc.h"
 
 namespace llvm {
-class SMLocError : public ErrorInfo<SMLocError, StringError> {
-  using ErrorInfo<SMLocError, StringError>::ErrorInfo;
-
-public:
+struct SMLocError : public ErrorInfo<SMLocError, StringError> {
   static char ID;
   SMLoc Loc;
 
@@ -16,3 +15,4 @@ public:
 
 Error createTGStringError(SMLoc Loc, const Twine &S);
 } // end namespace llvm
+#endif

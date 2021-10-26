@@ -34,6 +34,7 @@ set(_SOURCE_FILES
     sqlgen.cpp
     SQLEmitter.cpp
     SQLInsertEmitter.cpp
+    SQLQueryEmitter.cpp
     SQLTableEmitter.cpp
     )
 

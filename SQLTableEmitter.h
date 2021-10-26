@@ -12,6 +12,7 @@ class SQLTableEmitter {
   DenseMap<const Record *, StringRef> PrimaryKeys;
 
 public:
+  explicit
   SQLTableEmitter(raw_ostream &OS) : OS(OS) {}
 
   Error run(ArrayRef<const Record *> Classes);
