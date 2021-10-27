@@ -36,10 +36,9 @@ Error emitSQL(raw_ostream &OS, RecordKeeper &Records) {
       return std::move(E);
   }
 
-  if (Records.getClass("Operator") && Records.getClass("Query")) {
-    auto SQLOperators = Records.getAllDerivedDefinitions("Operator");
+  if (Records.getClass("Query")) {
     auto SQLQueries = Records.getAllDerivedDefinitions("Query");
-    if (auto E = SQLQueryEmitter(OS).run(SQLQueries, SQLOperators))
+    if (auto E = SQLQueryEmitter(OS).run(SQLQueries))
       return std::move(E);
   }
 

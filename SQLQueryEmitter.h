@@ -13,8 +13,7 @@ public:
   explicit
   SQLQueryEmitter(raw_ostream &OS) : OS(OS) {}
 
-  Error run(ArrayRef<const Record *> Queries,
-            ArrayRef<const Record *> Operators);
+  Error run(ArrayRef<const Record *> Queries);
 };
 } // end namespace llvm
 #endif
