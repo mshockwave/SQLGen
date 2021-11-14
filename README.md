@@ -17,6 +17,26 @@ Then build:
 ninja sqlgen
 ```
 
+## Example usage
+Given the following TableGen file `SampleQuery.td`:
+```tblgen
+class Query <string table, dag query_fields = (all), dag condition = (none)> {
+  string TableName = table;
+  dag Fields = query_fields;
+  dag WhereClause = condition;
+  list<string> OrderedBy = [];
+}
+
+def : Query<"Orders", (fields "Person", "Amount")>;
+```
+We can use the following command to generate the corresponding SQL query:
+```bash
+$ .build/sqlgen SampleQuery.td -o SampleQuery.sql
+$ cat SampleQuery.sql
+SELECT Person, Amount FROM Orders;
+$
+```
+
 ## Testing
 SQLGen is using [LLVM LIT](https://pypi.org/project/lit) as the testing harness. Please install it first:
 ```bash
