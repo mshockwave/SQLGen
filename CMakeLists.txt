@@ -38,13 +38,19 @@ set(_SOURCE_FILES
     SQLTableEmitter.cpp
     )
 
-set(LLVM_LINK_COMPONENTS
-  Support
-  TableGen
-  )
+# This is the old way of setting link components
+# It fails if we are linking against a shared libLLVM as shipped by most linux distros these days
+#set(LLVM_LINK_COMPONENTS
+#    Support
+#    TableGen
+#   )
 
 add_llvm_executable(sqlgen
   ${_SOURCE_FILES})
+
+# This is the correct way of setting link components
+# It is aware of the shared libLLVM: https://lists.llvm.org/pipermail/llvm-dev/2017-November/119054.html
+llvm_config(sqlgen support tablegen)
 
 set(FILECHECK_PATH "" CACHE FILEPATH "Path to FileCheck.")
 
